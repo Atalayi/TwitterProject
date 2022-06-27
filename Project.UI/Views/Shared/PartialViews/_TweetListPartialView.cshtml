@@ -1,0 +1,92 @@
+﻿@using Microsoft.AspNetCore.Http
+@model Tuple<List<TweetDto>, List<UserDto>, List<LikedTweetDto>>
+
+
+@foreach (var item in Model.Item1.OrderByDescending(x => x.CreatedDate))
+{
+
+    var userId = Convert.ToInt32(Context.Session.GetString("UserId"));
+    var userTweeted = @Model.Item2.Where(x => x.Id == item.UserId).FirstOrDefault();
+    var date = "";
+    var isLiked = Model.Item3.Any(x => x.UserId == Convert.ToInt32(Context.Session.GetString("UserId")) && x.TweetId == item.Id) == true ? 1 : 0;
+    var tweetLikeCount = Model.Item3.Where(x => x.TweetId == item.Id).Count();
+
+
+
+    <div class="tweet d-flex flex-row align-items-start">
+        <img class="rounded-circle tweet-profile-icon"
+         src="~/TwitterTemplate/assets/img/default_profile_400x400.png"
+         alt="User's Profile" />
+        <div class="flex-grow-1 d-flex flex-column ml-3">
+            <div class="d-flex">
+                <span class="d-flex text-trunctate flex-shrink-1 overflow-hidden">
+                    <span class="font-weight-bold d-inline-block overflow-hidden text-overflow-ellipsis flex-shrink-1"
+                      style="white-space: nowrap;">@userTweeted.Name @userTweeted.Surname</span>
+                    <span class="d-inline-block text-muted overflow-hidden ml-2 text-overflow-ellipsis flex-shrink-1"
+                      style="white-space: nowrap;">@userTweeted.Username</span>
+                </span>
+                <span class="text-muted mx-1 flex-shrink-0">&middot;</span>
+                <span class="text-muted flex-shrink-0 mr-2">
+                    @if (item.CreatedDate.Year == DateTime.Now.Year && item.CreatedDate.Month == DateTime.Now.Month && item.CreatedDate.Day == DateTime.Now.Day)
+                    {
+                        if (item.CreatedDate.Hour == DateTime.Now.Hour)
+                            date = (DateTime.Now.Minute - item.CreatedDate.Minute).ToString() + " Dakika";
+                        else
+                            date = (DateTime.Now.Hour - item.CreatedDate.Hour).ToString() + " Saat";
+                    }
+                    else if (item.CreatedDate.Year == DateTime.Now.Year && item.CreatedDate.Month == DateTime.Now.Month)
+                    {
+                        date = (DateTime.Now.Day - item.CreatedDate.Day).ToString() + " Gün";
+                    }
+                    else if (item.CreatedDate.Year == DateTime.Now.Year)
+                    {
+                        date = (DateTime.Now.Month - item.CreatedDate.Month).ToString() + " Ay";
+                    }
+                    else
+                    {
+                        date = (DateTime.Now.Year - item.CreatedDate.Year).ToString() + " Yıl";
+                    }
+                    @date
+                </span>
+                <span class="text-muted flex-shrink-0 ml-auto">
+                    <img src="~/TwitterTemplate/assets/img/ic-chevron-down.svg" alt="Options" />
+                </span>
+            </div>
+            @if (item.ImagePath != null)
+            {
+                <div class="mt-3 mb-2">
+                    <img src="@("~/img/" + item.ImagePath)" asp-append-version="true" alt="Alternate Text" style="height: 150px; width: 300px; border-radius:10px;" />
+                </div>
+            }
+            <div class="my-1">
+                <span>@item.Content</span>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <a class="flex-1 text-decoration-none text-muted d-flex align-items-center"
+               href="#">
+                    <img class="mr-2 tweet-action"
+                     src="~/TwitterTemplate/assets/img/ic-chat.svg"
+                     alt="Reply" />
+                </a>
+                <a class="flex-1 text-decoration-none text-muted d-flex align-items-center"
+               href="#">
+                    <img class="mr-2 tweet-action"
+                     src="~/TwitterTemplate/assets/img/ic-arrow-left-right.svg"
+                     alt="Retweet" />
+                </a>
+                <a class="btn flex-1 text-decoration-none text-muted d-flex align-items-center">
+
+                    <i class="pr-2 @(isLiked == 1 ? "fa-solid fa-heart" : "fa-regular fa-heart")" style="color:@(isLiked == 1 ? "red;" : "gray;")" id="like-tweet-@item.Id" onclick="likeTweet(@item.Id, @userId, @isLiked)"></i> @tweetLikeCount
+
+                </a>
+                <a class="text-decoration-none text-muted d-flex align-items-center justify-content-end"
+               href="#">
+                    <img src="~/TwitterTemplate/assets/img/ic-box-arrow-up.svg"
+                     alt="More options"
+                     class="tweet-action" />
+                </a>
+            </div>
+        </div>
+    </div>
+}
+

@@ -1,0 +1,146 @@
+﻿@*ProfilePage*@
+
+@model UserDto
+
+@{
+    ViewData["Title"] = "Anasayfa";
+}
+
+<style>
+    #user-profile.tweet-profile-icon {
+        width: 90px !important;
+        height: 90px !important;
+        border: 3px solid rgba(0,0,0,0.4);
+    }
+
+    #userlower {
+        margin-top: -45px !important;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    #btn-follow {
+        margin-top: 60px !important;
+    }
+
+    #tweet-nav a {
+        padding: 20px 22px;
+    }
+
+        #tweet-nav a:not(:first-child) {
+            font-weight: 700;
+        }
+
+        #tweet-nav a:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+    #username {
+        transition: all 0.3s ease;
+    }
+
+        #username:hover {
+            font-weight: 900;
+            transition: all 0.3s ease;
+        }
+
+    #tweet-nav a.selected {
+        font-weight: 900;
+        text-decoration: underline;
+        text-decoration-color: #0275d8;
+        text-underline-offset: 20px;
+        text-decoration-thickness: 6px;
+    }
+</style>
+
+<div id="tweets-feed" class="container center-column">
+    <div id="header-bar"
+         class="sticky-top px-2 py-1 d-none d-lg-flex align-items-center justify-content-between border-bottom border-1">
+        <span class="header-text">
+            @Model.Name @Model.Surname
+        </span>
+        <!--TOAST START-->
+        <div id="toast" hidden role="alert" aria-live="assertive" aria-atomic="true" class="toast d-inline-flex" data-animation="true" data-autohide="true" data-delay=6000>
+            <div class="toast-header">
+                <strong class="mr-auto text-info">Bilgi</strong>
+            </div>
+            <div class="toast-body">
+                Toast Body
+            </div>
+        </div>
+        <!--//TOAST END-->
+        <span>
+            <svg viewBox="0 0 24 24" class="content-preference-toggle">
+                <g>
+                    <path d="M22.772 10.506l-5.618-2.192-2.16-6.5c-.102-.307-.39-.514-.712-.514s-.61.207-.712.513l-2.16 6.5-5.62 2.192c-.287.112-.477.39-.477.7s.19.585.478.698l5.62 2.192 2.16 6.5c.102.306.39.513.712.513s.61-.207.712-.513l2.16-6.5 5.62-2.192c.287-.112.477-.39.477-.7s-.19-.585-.478-.697zm-6.49 2.32c-.208.08-.37.25-.44.46l-1.56 4.695-1.56-4.693c-.07-.21-.23-.38-.438-.462l-4.155-1.62 4.154-1.622c.208-.08.37-.25.44-.462l1.56-4.693 1.56 4.694c.07.212.23.382.438.463l4.155 1.62-4.155 1.622zM6.663 3.812h-1.88V2.05c0-.414-.337-.75-.75-.75s-.75.336-.75.75v1.762H1.5c-.414 0-.75.336-.75.75s.336.75.75.75h1.782v1.762c0 .414.336.75.75.75s.75-.336.75-.75V5.312h1.88c.415 0 .75-.336.75-.75s-.335-.75-.75-.75zm2.535 15.622h-1.1v-1.016c0-.414-.335-.75-.75-.75s-.75.336-.75.75v1.016H5.57c-.414 0-.75.336-.75.75s.336.75.75.75H6.6v1.016c0 .414.335.75.75.75s.75-.336.75-.75v-1.016h1.098c.414 0 .75-.336.75-.75s-.336-.75-.75-.75z"></path>
+                </g>
+            </svg>
+        </span>
+    </div>
+    <!-- Compose Tweet Panel -->
+    <div class="modal-body border-bottom border-1">
+        <div class="row">
+            <img src="~/TwitterTemplate/assets/img/joker.jpg" class="img-fluid" />
+        </div>
+        <div class="row d-flex justify-content-between mt-2" id="userlower">
+            <div class="float-left">
+                <img src="~/TwitterTemplate/assets/img/batman.jpg" class="tweet-profile-icon mr-2 rounded-circle" id="user-profile" />
+            </div>
+            <div id="btn-follow" class="float-right"><button class="btn btn-outline-primary rounded-pill ml-auto py-1 px-3 font-weight-bold">Edit Profile</button></div>
+        </div>
+        <div class="row mt-3 flex-column justify-content-start">
+            <p class="h4 font-weight-bold">@Model.Name @Model.Surname</p>
+            <span class="h6" id="username" style="color:gray;">@@@Model.Username</span>
+            <p class="h6" style="color:gray;">Doğum Tarihi: @Model.BirthDate.ToShortDateString()</p>
+            <p class="h6" style="color:gray;"><span class="font-weight-bolder pr-1">50</span>Takip Edilen<span class="font-weight-bolder pl-3 pr-1">150</span>Takipçi</p>
+        </div>
+        <div id="tweet-nav" class="row d-flex justify-content-center ml-auto mr-auto">
+            <a class="btn selected">Tweetler</a>
+            <a class="btn">Tweetler ve Yanıtlar</a>
+            <a class="btn">Medya</a>
+            <a class="btn">Beğeni</a>
+        </div>
+    </div>
+    <br />
+    <div class="py-1 divider d-none d-lg-block"></div>
+    <!-- A Tweet -->
+    <div id="tweet-feed"></div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function() {
+            getTweets = () => {
+                $.ajax({
+                    method: "GET",
+                    url: "/Profile/GetMyTweets/" + @Model.Id,
+                    success: function(res) {
+                        $("#tweet-feed").html(res);
+                    },
+                    error: function(err) {
+                        console.log(err);
+                    }
+                });
+            };
+            getTweets();
+
+            postTweet = () => {
+                $("#toast").removeAttr("hidden");
+                $.ajax({
+                    method: "POST",
+                    url: "/Profile/GetMyTweets",
+                    data: $("#inner-post").serialize(),
+                    success: function(res) {
+                        $(".toast-body").text(res.message);
+                        $("#toast").toast('show');
+                        $("textarea#compose-tweet-body").val("");
+                        getTweets();
+                    },
+                    error: function(err) {
+                        alert(err);
+                    }
+                });
+            };
+        });
+    </script>
+}

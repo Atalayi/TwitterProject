@@ -1,0 +1,19 @@
+﻿@model List<UserDto>
+
+<ul id="search-ul" class="list-group mt-3 trending-list">
+
+    @foreach (var item in Model)
+    {
+        <li class="list-group-item p-3 trend-item">
+            <div class="d-flex align-items-start justify-content-between">
+                <a asp-controller="Profile" asp-action="Index" asp-route-username="@item.Username">
+                    <img src="~/TwitterTemplate/assets/img/blank-profile-picture.png" class="profile-icon" style="height:50px; width:50px;">
+                </a>
+                <div class="d-flex flex-column">
+                    <a asp-controller="Profile" asp-action="Index" asp-route-username="@item.Username" class="text-reset font-weight-bold">@item.Name @item.Surname</a>
+                </div>
+                <img src="~/TwitterTemplate/assets/img/ic-chevron-down.svg" alt="Trend Options" />
+            </div>
+        </li>
+    }
+</ul>

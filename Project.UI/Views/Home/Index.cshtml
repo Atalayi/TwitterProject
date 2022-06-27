@@ -1,0 +1,136 @@
+﻿@{
+    ViewData["Title"] = "Anasayfa";
+}
+
+<div id="tweets-feed" class="container center-column">
+    <div id="header-bar"
+         class="sticky-top px-2 py-3 d-none d-lg-flex align-items-center justify-content-between border-bottom border-1">
+        <span class="header-text">Home</span>
+        <span>
+            <svg viewBox="0 0 24 24" class="content-preference-toggle">
+                <g>
+                    <path d="M22.772 10.506l-5.618-2.192-2.16-6.5c-.102-.307-.39-.514-.712-.514s-.61.207-.712.513l-2.16 6.5-5.62 2.192c-.287.112-.477.39-.477.7s.19.585.478.698l5.62 2.192 2.16 6.5c.102.306.39.513.712.513s.61-.207.712-.513l2.16-6.5 5.62-2.192c.287-.112.477-.39.477-.7s-.19-.585-.478-.697zm-6.49 2.32c-.208.08-.37.25-.44.46l-1.56 4.695-1.56-4.693c-.07-.21-.23-.38-.438-.462l-4.155-1.62 4.154-1.622c.208-.08.37-.25.44-.462l1.56-4.693 1.56 4.694c.07.212.23.382.438.463l4.155 1.62-4.155 1.622zM6.663 3.812h-1.88V2.05c0-.414-.337-.75-.75-.75s-.75.336-.75.75v1.762H1.5c-.414 0-.75.336-.75.75s.336.75.75.75h1.782v1.762c0 .414.336.75.75.75s.75-.336.75-.75V5.312h1.88c.415 0 .75-.336.75-.75s-.335-.75-.75-.75zm2.535 15.622h-1.1v-1.016c0-.414-.335-.75-.75-.75s-.75.336-.75.75v1.016H5.57c-.414 0-.75.336-.75.75s.336.75.75.75H6.6v1.016c0 .414.335.75.75.75s.75-.336.75-.75v-1.016h1.098c.414 0 .75-.336.75-.75s-.336-.75-.75-.75z"></path>
+                </g>
+            </svg>
+        </span>
+    </div>
+    <!-- Compose Tweet Panel -->
+    <div class="modal-body d-none d-lg-flex border-bottom border-1">
+        <img class="tweet-profile-icon mr-2 rounded-circle"
+             src="~/TwitterTemplate/assets/img/default_profile_400x400.png"
+             alt="User Profile Icon" />
+        <form id="AddTweetForm" class="modal-body d-none d-lg-flex border-bottom border-1">
+            <div class="flex-grow-1">
+                <div class="form-group">
+                    <img id="output" asp-append-version="true" alt="your image" style="visibility:hidden; height: 150px; width: 300px; border: 1px solid black; box-shadow: 7px 7px 7px rgba(0, 0, 0, 0.3)" />
+                    <input id="photoUpload" name="ImageFile" class="form-control" type="file" accept="image/*" onchange="loadFile(event)" hidden />
+                </div>
+                <textarea name="Content"
+                          id="compose-tweet-body"
+                          rows="2"
+                          class="w-100 py-1 compose-tweet-body border-0"
+                          placeholder="What's happening"></textarea>
+                <div class="d-flex align-items-center mt-2">
+                    <a class="btn border-0 rounded-circle btn-compose-tweet-advanced" onclick="$('#photoUpload').click(), removeAttrFunc()">
+                        <img src="~/TwitterTemplate/assets/img/ic-image.svg"
+                             alt="Attach image"
+                             class="ic-compose-tweet-advanced" />
+                    </a>
+                    <button class="border-0 rounded-circle btn-compose-tweet-advanced">
+                        <img src="~/TwitterTemplate/assets/img/ic-gif.svg"
+                             alt="Add animated GIF"
+                             class="ic-compose-tweet-advanced" />
+                    </button>
+                    <button class="border-0 rounded-circle btn-compose-tweet-advanced">
+                        <img src="~/TwitterTemplate/assets/img/ic-bar-chart.svg"
+                             alt="Create poll"
+                             class="ic-compose-tweet-advanced" />
+                    </button>
+                    <button class="border-0 rounded-circle btn-compose-tweet-advanced">
+                        <img src="~/TwitterTemplate/assets/img/ic-calendar-plus.svg"
+                             alt="Schedule tweet"
+                             class="ic-compose-tweet-advanced" />
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary py-2 px-3 rounded-pill font-weight-bold send-tweet-btn ml-auto" onclick="postTweet()">
+                        Tweet
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="py-1 divider d-none d-lg-block"></div>
+    <!-- A Tweet -->
+    <div id="tweet-feed"></div>
+</div>
+
+@section Scripts{
+    <script>
+        var loadFile = function(event) {
+            var output = document.getElementById('output');
+            output.src = URL.createObjectURL(event.target.files[0]);
+            output.onload = function() {
+                URL.revokeObjectURL(output.src)
+            }
+        };
+        $(document).ready(function() {
+            getTweets = () => {
+                $.ajax({
+                    method: "GET",
+                    url: "/Home/GetTweets",
+                    success: function(res) {
+                        $("#tweet-feed").html(res);
+                    },
+                    error: function(err) {
+                        console.log(err);
+                    }
+                });
+            };
+            getTweets();
+
+            removeAttrFunc = () => {
+                $('#output').css({ "visibility": "" });
+            }
+
+            postTweet = () => {
+                $("#toast").removeAttr("hidden");
+                var formData = new FormData($("#AddTweetForm")[0]);
+                $.ajax({
+                    method: "POST",
+                    url: "/Home/AddTweet",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        $(".toast-body").text(res.message);
+                        $("#toast").toast('show');
+                        $("textarea#compose-tweet-body").val("");
+                        $("#photoUpload").val("");
+                        $("#output").css({ "visibility": "hidden" });
+                        $("#output").src = "";
+                        getTweets();
+                    },
+                    error: function(err) {
+                        alert(err);
+                    }
+                });
+            };
+
+
+            likeTweet = (tweetId, userId, likeStatus) => {
+                $.ajax({
+                    method: "POST",
+                    url: "/Home/LikeTweet",
+                    data: { UserId: userId, TweetId: tweetId },
+                    success: function(res) {
+                        getTweets();
+                    },
+                    error: function(err) {
+                        console.log(err);
+                    }
+                });
+            };
+        });
+    </script>
+}
+
